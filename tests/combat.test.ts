@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {makeRoom,joinRoom,input,advance,view,applyAttack,cleanup,freshWorld} from '../lib/combat.ts';
+const now=10000;
+function duel(mode:'ai'|'friend'|'random'='friend'){const r=makeRoom('room','ABC123',mode,'p1','One',now);if(mode!=='ai')joinRoom(r,'p2','Two',now);r.start=now;return r;}
+test('friend rooms wait, start on join, cannot add a third player, hide tokens',()=>{const r=makeRoom('room','ABC123','friend','p1','One',now);assert.equal(r.status,'waiting');joinRoom(r,'p2','Two',now);assert.equal(r.status,'playing');assert.equal(r.start,now+3000);assert.throws(()=>joinRoom(r,'p3','Three',now));assert.ok(!JSON.stringify(view(r,'p1',now)).includes('"tokens"'));});
+test('unknown player cannot control a room',()=>{assert.throws(()=>input(duel(),'attacker',['PUNCH'],1,now));});
+test('concurrent movement and punch both apply; cooldown prevents repeated damage',()=>{const r=duel();r.fighters[0].x=40;r.fighters[1].x=55;input(r,'p1',['MOVE RIGHT','PUNCH'],1,now+100);assert.equal(r.fighters[1].hp,94);advance(r,now+300);assert.ok(r.fighters[0].x>40);input(r,'p1',['PUNCH'],2,now+400);assert.equal(r.fighters[1].hp,94);input(r,'p1',['PUNCH'],3,now+800);assert.equal(r.fighters[1].hp,88);});
+test('replayed input sequence cannot reapply an attack',()=>{const r=duel();r.fighters[1].x=40;input(r,'p1',['PUNCH'],5,now+100);input(r,'p1',['PUNCH'],5,now+1500);assert.equal(r.fighters[1].hp,94);});
+test('blocking and ice reduce damage; powers consume energy',()=>{const r=duel();r.fighters[1].actions=['BLOCK'];applyAttack(r,0,'FIRE BLAST',now+1);assert.equal(r.fighters[1].hp,96);assert.equal(r.fighters[0].energy,75);applyAttack(r,1,'ICE SHIELD',now+2);applyAttack(r,0,'LIGHTNING',now+3);assert.equal(r.fighters[1].hp,95);});
+test('punch requires range and duck evades it',()=>{const r=duel();applyAttack(r,0,'PUNCH',now+1);assert.equal(r.fighters[1].hp,100);r.fighters[1].x=40;r.fighters[1].actions=['BEND'];applyAttack(r,0,'PUNCH',now+1000);assert.equal(r.fighters[1].hp,100);});
+test('countdown prevents damage and stale movement stops',()=>{const r=duel();r.start=now+3000;input(r,'p1',['FIRE BLAST','MOVE RIGHT'],1,now+100);assert.equal(r.fighters[1].hp,100);advance(r,now+4000);assert.deepEqual(r.fighters[0].actions,[]);});
+test('knockout and timeout determine winner',()=>{const r=duel();r.fighters[1].hp=5;applyAttack(r,0,'FIRE BLAST',now+1);assert.equal(r.status,'finished');assert.equal(r.winner,0);const tie=duel('ai');advance(tie,now+90001);assert.equal(tie.status,'finished');assert.equal(tie.winner,-1);});
+test('disconnect gives remaining player a win',()=>{const r=duel();r.fighters[0].lastSeen=now+20000;advance(r,now+20000);assert.equal(r.status,'finished');assert.equal(r.winner,0);});
+test('expired queue entries and rooms are pruned',()=>{const w=freshWorld();w.queue=[{token:'old',name:'Old',at:0}];w.rooms.r=duel();cleanup(w,now+1000000);assert.equal(w.queue.length,0);assert.equal(Object.keys(w.rooms).length,0);});

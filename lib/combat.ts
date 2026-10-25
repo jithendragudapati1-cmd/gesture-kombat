@@ -1,0 +1,66 @@
+import {arenaId,type ArenaId} from './arenas.ts';
+import {characterId,opponentCharacter,type CharacterId} from './characters.ts';
+export const ACTIONS = ['MOVE LEFT','MOVE RIGHT','WALK','RUN','JUMP','BEND','BLOCK','PUNCH','DOUBLE PUNCH','KICK','FIRE BLAST','ICE SHIELD','LIGHTNING','COMBO ENERGY'] as const;
+export type Action = typeof ACTIONS[number];
+export type Fighter = { name:string; character?:CharacterId; x:number; hp:number; energy:number; actions:string[]; lastSeen:number; lastAttack:Record<string,number>; effect:string; effectAt:number; hitAt:number; jumpUntil:number; shieldUntil:number; seq:number };
+export type Room = { arena?:ArenaId; id:string; code:string; mode:'ai'|'friend'|'random'; tokens:string[]; fighters:Fighter[]; status:'waiting'|'playing'|'finished'; start:number; updated:number; tick:number; winner:number|null; cpuAt:number; difficulty:string };
+export type World = { rooms:Record<string,Room>; queue:{token:string;name:string;character?:CharacterId;arena?:ArenaId;at:number}[] };
+export const freshWorld=():World=>({rooms:{},queue:[]});
+export function fighter(name:string,x:number,now:number,character:CharacterId='raven'):Fighter{return {character,name:name.slice(0,20)||'Fighter',x,hp:100,energy:100,actions:[],lastSeen:now,lastAttack:{},effect:'',effectAt:0,hitAt:0,jumpUntil:0,shieldUntil:0,seq:-1};}
+export function makeRoom(id:string,code:string,mode:Room['mode'],token:string,name:string,now:number,difficulty='normal',character:CharacterId='raven',arena:ArenaId='moon-citadel'):Room {
+ const ai=mode==='ai';return {arena:arenaId(arena),id,code,mode,tokens:ai?[token,'CPU']:[token],fighters:ai?[fighter(name,28,now,character),fighter('Training AI',72,now,opponentCharacter(character))]:[fighter(name,28,now,character)],status:ai?'playing':'waiting',start:ai?now+3000:0,updated:now,tick:now,winner:null,cpuAt:now+3500,difficulty};
+}
+export function joinRoom(r:Room,token:string,name:string,now:number,character:CharacterId='vortex'){
+ if(r.tokens.includes(token))return;
+ if(r.status!=='waiting'||r.tokens.length>=2)throw Error('This room is full or already started.');
+ r.tokens.push(token);r.fighters.push(fighter(name,72,now,character));r.status='playing';r.start=now+3000;r.tick=now;r.updated=now;
+}
+const attacks:Record<string,{damage:number;reach:number;cooldown:number;cost:number}>={
+ PUNCH:{damage:6,reach:19,cooldown:550,cost:0},'DOUBLE PUNCH':{damage:11,reach:21,cooldown:850,cost:6},KICK:{damage:9,reach:25,cooldown:750,cost:3},'FIRE BLAST':{damage:15,reach:90,cooldown:2600,cost:25},LIGHTNING:{damage:12,reach:95,cooldown:3000,cost:25},'COMBO ENERGY':{damage:23,reach:90,cooldown:5500,cost:45}
+};
+export function applyAttack(r:Room,side:number,action:string,now:number){
+ const p=r.fighters[side],q=r.fighters[1-side];if(!q||r.status!=='playing'||now<r.start)return;
+ if(action==='ICE SHIELD'){
+  if(now-(p.lastAttack[action]??-1e9)<4000||p.energy<20)return;
+  p.energy-=20;p.shieldUntil=now+1700;p.lastAttack[action]=now;p.effect=action;p.effectAt=now;return;
+ }
+ const spec=attacks[action];if(!spec||p.energy<spec.cost||now-(p.lastAttack[action]??-1e9)<spec.cooldown)return;
+ p.energy-=spec.cost;p.lastAttack[action]=now;p.effect=action;p.effectAt=now;
+ const inRange=Math.abs(p.x-q.x)<=spec.reach;
+ const dodged=(action==='PUNCH'||action==='DOUBLE PUNCH')&&(q.actions.includes('BEND')||q.jumpUntil>now);
+ if(inRange&&!dodged){const guard=q.shieldUntil>now?.12:q.actions.includes('BLOCK')?.28:1;q.hp=Math.max(0,q.hp-Math.round(spec.damage*guard));q.hitAt=now;}
+ if(q.hp<=0){r.status='finished';r.winner=side;}
+}
+export function advance(r:Room,now:number){
+ if(r.status!=='playing'){r.tick=now;return;}
+ if(now<r.start){r.tick=now;return;}
+ if(now-r.start>=90000){r.status='finished';r.winner=r.fighters[0].hp===r.fighters[1].hp?-1:r.fighters[0].hp>r.fighters[1].hp?0:1;return;}
+ const dt=Math.min(.45,Math.max(0,(now-Math.max(r.tick,r.start))/1000));r.tick=now;
+ for(const p of r.fighters){
+  p.energy=Math.min(100,p.energy+dt*7);
+  if(now-p.lastSeen>700)p.actions=[];
+  const left=p.actions.includes('MOVE LEFT'),right=p.actions.includes('MOVE RIGHT');
+  if(left!==right)p.x=Math.max(8,Math.min(92,p.x+(right?1:-1)*dt*(p.actions.includes('RUN')?25:17)));
+ }
+ if(r.mode==='ai'&&now>=r.cpuAt){
+  const cpu=r.fighters[1],human=r.fighters[0],gap=cpu.x-human.x;cpu.lastSeen=now;
+  cpu.actions=Math.abs(gap)>17?[gap>0?'MOVE LEFT':'MOVE RIGHT']:Math.random()<.25?['BLOCK']:[];
+  r.cpuAt=now+(r.difficulty==='easy'?900:r.difficulty==='hard'?340:600);
+  if(Math.random()<(r.difficulty==='easy'?.45:.8))applyAttack(r,1,Math.abs(gap)>26?'FIRE BLAST':Math.random()<.5?'PUNCH':'KICK',now);
+ }
+ if(now-r.start>=90000&&r.status==='playing'){r.status='finished';r.winner=r.fighters[0].hp===r.fighters[1].hp?-1:r.fighters[0].hp>r.fighters[1].hp?0:1;}
+ if(r.mode!=='ai'&&r.fighters.some(p=>now-p.lastSeen>18000)){
+  r.status='finished';const away=r.fighters.map(p=>now-p.lastSeen>18000);r.winner=away[0]&&away[1]?-1:away[0]?1:0;
+ }
+}
+export function input(r:Room,token:string,actions:string[],seq:number,now:number){
+ const side=r.tokens.indexOf(token);if(side<0)throw Error('You are not a player in this room.');
+ advance(r,now);const p=r.fighters[side];p.lastSeen=now;r.updated=now;
+ if(seq>p.seq){p.seq=seq;p.actions=[...new Set(actions.filter(a=>(ACTIONS as readonly string[]).includes(a)))];
+  if(p.actions.includes('JUMP')&&now>=r.start&&now-(p.lastAttack.JUMP??-1e9)>1000){p.jumpUntil=now+650;p.lastAttack.JUMP=now;}
+  for(const a of p.actions)applyAttack(r,side,a,now);
+ }
+ return side;
+}
+export function view(r:Room,token:string,now:number){return {arena:arenaId(r.arena),id:r.id,code:r.code,mode:r.mode,status:r.status,fighters:r.fighters,start:r.start,winner:r.winner,side:r.tokens.indexOf(token),serverTime:now};}
+export function cleanup(w:World,now:number){w.queue=w.queue.filter(q=>now-q.at<12000);for(const [id,r] of Object.entries(w.rooms))if(now-r.updated>15*60000)delete w.rooms[id];}
