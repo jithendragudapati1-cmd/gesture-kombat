@@ -2,8 +2,6 @@
 
 [Play the live game](https://gesture-kombat-arena-jg.easyalder12.chatgpt.site/)
 
-Webcam-controlled 3D fighting game with AI, online matchmaking, private friend duels, training and split-screen live pose tracking.
-
 
 A playable browser companion to the existing Python Gesture Kombat detector.
 The Python 3.12 / MediaPipe 0.10.21 environment is unchanged. This web app ports
@@ -32,7 +30,7 @@ B block, F fire, I ice shield, E lightning, C combo. Touch buttons also work.
 
 ## Match rules
 
-90-second rounds, 100 health, 100 regenerating energy. Melee attacks require
+90-second rounds, 250 health, 100 regenerating energy. Melee attacks require
 range; blocks reduce damage; ice absorbs most damage for a short duration.
 Powers cost energy and have independent cooldowns. The server computes damage,
 energy, movement, AI, timeouts, forfeits and winners. Replayed input sequences
@@ -229,3 +227,14 @@ Raven and Vortex now load the user-supplied blue/red GLBs in all 3D modes, via `
 The blue export had a skeleton but almost all vertices weighted to Hips; red had no skeleton. The preparation scripts repair bind orientation, generate smooth distance-based four-bone weights for both meshes, and transfer the skeleton. These are approximate automatic weights: armor, fingers and cape can deform imperfectly, and there is no cloth simulation. The exports contain no authored animation clips; existing combat poses and live tracking drive the imported bones. Models load asynchronously with explicit loading/error UI; there is no visible procedural character fallback.
 
 Preparation uses `scripts/prepare-tripo.mjs` (meshoptimizer) followed by `scripts/skin-tripo.py` (NumPy/Pillow), with the supplied files in Downloads. The intermediate file is `/private/tmp/red-simplified.json`. `tests/models.test.ts` verifies embedded textures, useful per-limb weighting, normalized weights, vertex limits, and hosting asset size limits.
+
+
+## October 25 model inspection and contact combat update
+
+New model exports from the supplied gesture folder replace the earlier approximate re-skinned models. The source GLBs (blue+glb and red-box) preserve their original textures and four-weight skinning. Every supplied file is audited in public/models/import-report.json: none includes an animation clip, and the named blue action files contain the same bone transforms. Therefore exact playback of those named animations is unavailable; movement continues using continuous poses/live retargeting. An export with animation enabled is required for authored clip playback. Originals are untouched.
+
+Training and Live Tracking support drag-to-orbit, scroll-to-zoom, Reset view, and an Original pose inspection toggle. Camera orbit changes only the view, never combat positions.
+
+New matches start at 250 HP. Attacks queue a wind-up before contact is checked; melee must connect within a short directional hit volume, fire/combo projectiles sweep a traveling path, and lightning marks a target position before striking. Moving out of the path, crouching, jumping, and shielding can avoid or mitigate damage. Hit volumes are a gameplay approximation, not per-triangle mesh collision. Server results remain authoritative. Existing matches retain their original max HP.
+
+Animated orange fireballs, purple combo energy, particles, impact rings, lightning telegraphs/bolts and ice shields now work in tutorials, Live Tracking and matches. Power HUD includes fire/ice/lightning/combo emoji. Opening uses a short skippable neon transition with reduced-motion support.

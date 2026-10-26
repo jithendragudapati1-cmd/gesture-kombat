@@ -10,7 +10,7 @@ export function previewFighters(players:Fighter[],side:number,local:LocalControl
   const result={...p,actions};
   const left=actions.includes('MOVE LEFT'),right=actions.includes('MOVE RIGHT');
   if(left!==right)result.x=Math.max(8,Math.min(92,p.x+(right?1:-1)*elapsed*(actions.includes('RUN')?25:17)));
-  if(i===side&&local.effectAt>receivedAt-100&&now-local.effectAt<450){result.effect=local.effect;result.effectAt=serverTime+local.effectAt-receivedAt;}
+  if(i===side&&local.effectAt>receivedAt-100&&now-local.effectAt<450){result.effect=local.effect;result.effectX=p.x;result.effectDirection=p.x<=(players[1-i]?.x??p.x)?1:-1;result.effectTarget=players[1-i]?.x??50;result.effectAt=serverTime+local.effectAt-receivedAt;}
   if(i===side&&now-local.jumpAt<650)result.jumpUntil=serverTime+local.jumpAt-receivedAt+650;
   return result;
  });

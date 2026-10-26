@@ -1,0 +1,128 @@
+[
+  {
+    "file": "blue+block.glb",
+    "bytes": 11956604,
+    "sha256": "1c2be78be694a92307f37e7d0ef13739c9b5c3137806e0d7b8918bd58bde25c1",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue+glb.glb",
+    "bytes": 11956596,
+    "sha256": "5158b55f9f79052aa5615a25f457d725b1698321731c8c0c6c72466f66b6a750",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-affraid.glb",
+    "bytes": 11956608,
+    "sha256": "ec4ed6b88924fe0416a9728e860215b5cfa8fda735e324e05c9c06894daa52e7",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-cheer.glb",
+    "bytes": 11956604,
+    "sha256": "60ba4eda50dab740532903507637bd4295915b0bafbc37f1827174b0d25f87f3",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-double+punch.glb",
+    "bytes": 11956624,
+    "sha256": "5e8a69f918d7d122e5a75756abf7676bfc49b3655ae2d27ba9f17265515b76ca",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-jump.glb",
+    "bytes": 11956600,
+    "sha256": "5f4aa753e4c5c29e4a81156bdc98c8653c83bf9683198d6f0f1b124f78e2b7e0",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-kick.glb",
+    "bytes": 11956600,
+    "sha256": "21d4b86213dd76f1768126f317f670c42c8af3eacbd7a916d0526493a1226e52",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-single+punch.glb",
+    "bytes": 11956624,
+    "sha256": "714c239ecdfb822ef48542c5494dfc88a6106569d7d7ced83774d2b05bfb0b86",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "blue-walk.glb",
+    "bytes": 11956600,
+    "sha256": "27802a78312818e7becd11c50a1f8847c6fe0d896fc0d7d31777a12b835da468",
+    "animationClips": [],
+    "skeletonPoseHash": "802f6463229b926cbca5ccf4ed34d57b0aa73b85a3acdcc5d03b0310c2efc190"
+  },
+  {
+    "file": "red-block.glb",
+    "bytes": 12056856,
+    "sha256": "a0cf9c99a5d504ace6ca907988797ce05e60889904f22bbecd86a9cd213748e1",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-box.glb",
+    "bytes": 12056852,
+    "sha256": "9bf39460a73697218dc4ca500c5c7cf1f1ea6f0e3e2507350d2a98af78159438",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-cheer.glb",
+    "bytes": 12056856,
+    "sha256": "c9b40572317e18736a159b175374b7d8237ae76b4f1e11b1e324162eba0f4c37",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-jump.glb",
+    "bytes": 12056856,
+    "sha256": "c9510ca58a0f3966cb3704e5fdf7c490ba844fc872369b9c5d7097a134146a3f",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-kick.glb",
+    "bytes": 12056856,
+    "sha256": "a63b496ed2034fb12aef687a6d8c0d71b8f038c931ca7e9ba492b9a984712da5",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-single+punch.glb",
+    "bytes": 12056880,
+    "sha256": "f16b421f96ee0afae92a71a8cdced6e39ab67b46b079ff47510594fe7869892a",
+    "animationClips": [],
+    "skeletonPoseHash": "24962d158ec20c7a44837993dce7ee1524669f80899949a5607f4a0fb13c6533"
+  },
+  {
+    "file": "red-still.glb",
+    "bytes": 12270360,
+    "sha256": "c6b655ce22d0837d840e03f3182b22923223b132fa86b20c275e324aa5f7e8e6",
+    "animationClips": [],
+    "skeletonPoseHash": "e31d93d35dcfd4ef25ae9e73e65b74f047de389e5479bce7bd46bc290c301467"
+  },
+  {
+    "file": "red-walk.glb",
+    "bytes": 12270356,
+    "sha256": "8f405c206122c1c06b351ac869c81b748db6522c29900daf5631d57e2366a58b",
+    "animationClips": [],
+    "skeletonPoseHash": "e31d93d35dcfd4ef25ae9e73e65b74f047de389e5479bce7bd46bc290c301467"
+  },
+  {
+    "file": "red.glb",
+    "bytes": 70728996,
+    "sha256": "3d1a05f8116468227b83ceb2597e8a56d3dc9362d0870a2dd714eec1441c1c72",
+    "animationClips": [],
+    "skeletonPoseHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+]

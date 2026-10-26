@@ -1,12 +1,15 @@
+import {ATTACKS,MAX_HP,projectileX} from './attack-specs.ts';
+export {MAX_HP} from './attack-specs.ts';
 import {arenaId,type ArenaId} from './arenas.ts';
 import {characterId,opponentCharacter,type CharacterId} from './characters.ts';
 export const ACTIONS = ['MOVE LEFT','MOVE RIGHT','WALK','RUN','JUMP','BEND','BLOCK','PUNCH','DOUBLE PUNCH','KICK','FIRE BLAST','ICE SHIELD','LIGHTNING','COMBO ENERGY'] as const;
 export type Action = typeof ACTIONS[number];
-export type Fighter = { name:string; character?:CharacterId; x:number; hp:number; energy:number; actions:string[]; lastSeen:number; lastAttack:Record<string,number>; effect:string; effectAt:number; hitAt:number; jumpUntil:number; shieldUntil:number; seq:number };
-export type Room = { arena?:ArenaId; id:string; code:string; mode:'ai'|'friend'|'random'; tokens:string[]; fighters:Fighter[]; status:'waiting'|'playing'|'finished'; start:number; updated:number; tick:number; winner:number|null; cpuAt:number; difficulty:string };
+export type Fighter = { name:string; character?:CharacterId; x:number; hp:number; maxHp?:number; energy:number; actions:string[]; lastSeen:number; lastAttack:Record<string,number>; effect:string; effectAt:number; effectX?:number; effectDirection?:number; effectTarget?:number; hitAt:number; jumpUntil:number; shieldUntil:number; seq:number };
+export type PendingHit={side:number;action:string;at:number;checked:number;origin:number;direction:number;target:number};
+export type Room = { hits?:PendingHit[]; arena?:ArenaId; id:string; code:string; mode:'ai'|'friend'|'random'; tokens:string[]; fighters:Fighter[]; status:'waiting'|'playing'|'finished'; start:number; updated:number; tick:number; winner:number|null; cpuAt:number; difficulty:string };
 export type World = { rooms:Record<string,Room>; queue:{token:string;name:string;character?:CharacterId;arena?:ArenaId;at:number}[] };
 export const freshWorld=():World=>({rooms:{},queue:[]});
-export function fighter(name:string,x:number,now:number,character:CharacterId='raven'):Fighter{return {character,name:name.slice(0,20)||'Fighter',x,hp:100,energy:100,actions:[],lastSeen:now,lastAttack:{},effect:'',effectAt:0,hitAt:0,jumpUntil:0,shieldUntil:0,seq:-1};}
+export function fighter(name:string,x:number,now:number,character:CharacterId='raven'):Fighter{return {character,name:name.slice(0,20)||'Fighter',x,hp:MAX_HP,maxHp:MAX_HP,energy:100,actions:[],lastSeen:now,lastAttack:{},effect:'',effectAt:0,hitAt:0,jumpUntil:0,shieldUntil:0,seq:-1};}
 export function makeRoom(id:string,code:string,mode:Room['mode'],token:string,name:string,now:number,difficulty='normal',character:CharacterId='raven',arena:ArenaId='moon-citadel'):Room {
  const ai=mode==='ai';return {arena:arenaId(arena),id,code,mode,tokens:ai?[token,'CPU']:[token],fighters:ai?[fighter(name,28,now,character),fighter('Training AI',72,now,opponentCharacter(character))]:[fighter(name,28,now,character)],status:ai?'playing':'waiting',start:ai?now+3000:0,updated:now,tick:now,winner:null,cpuAt:now+3500,difficulty};
 }
@@ -15,21 +18,37 @@ export function joinRoom(r:Room,token:string,name:string,now:number,character:Ch
  if(r.status!=='waiting'||r.tokens.length>=2)throw Error('This room is full or already started.');
  r.tokens.push(token);r.fighters.push(fighter(name,72,now,character));r.status='playing';r.start=now+3000;r.tick=now;r.updated=now;
 }
-const attacks:Record<string,{damage:number;reach:number;cooldown:number;cost:number}>={
- PUNCH:{damage:6,reach:19,cooldown:550,cost:0},'DOUBLE PUNCH':{damage:11,reach:21,cooldown:850,cost:6},KICK:{damage:9,reach:25,cooldown:750,cost:3},'FIRE BLAST':{damage:15,reach:90,cooldown:2600,cost:25},LIGHTNING:{damage:12,reach:95,cooldown:3000,cost:25},'COMBO ENERGY':{damage:23,reach:90,cooldown:5500,cost:45}
-};
 export function applyAttack(r:Room,side:number,action:string,now:number){
  const p=r.fighters[side],q=r.fighters[1-side];if(!q||r.status!=='playing'||now<r.start)return;
  if(action==='ICE SHIELD'){
   if(now-(p.lastAttack[action]??-1e9)<4000||p.energy<20)return;
   p.energy-=20;p.shieldUntil=now+1700;p.lastAttack[action]=now;p.effect=action;p.effectAt=now;return;
  }
- const spec=attacks[action];if(!spec||p.energy<spec.cost||now-(p.lastAttack[action]??-1e9)<spec.cooldown)return;
+ const spec=ATTACKS[action];if(!spec||p.energy<spec.cost||now-(p.lastAttack[action]??-1e9)<spec.cooldown)return;
  p.energy-=spec.cost;p.lastAttack[action]=now;p.effect=action;p.effectAt=now;
- const inRange=Math.abs(p.x-q.x)<=spec.reach;
- const dodged=(action==='PUNCH'||action==='DOUBLE PUNCH')&&(q.actions.includes('BEND')||q.jumpUntil>now);
- if(inRange&&!dodged){const guard=q.shieldUntil>now?.12:q.actions.includes('BLOCK')?.28:1;q.hp=Math.max(0,q.hp-Math.round(spec.damage*guard));q.hitAt=now;}
- if(q.hp<=0){r.status='finished';r.winner=side;}
+ const direction=q.x>=p.x?1:-1;p.effectX=p.x;p.effectDirection=direction;p.effectTarget=q.x;
+ (r.hits??=[]).push({side,action,at:now,checked:now,origin:p.x,direction,target:q.x});
+}
+export function resolveHits(r:Room,now:number){
+ r.hits=(r.hits??[]).filter(hit=>{
+  const spec=ATTACKS[hit.action],p=r.fighters[hit.side],q=r.fighters[1-hit.side];
+  if(!spec||!q||r.status!=='playing')return false;
+  const age=now-hit.at;if(age<spec.windup)return true;
+  let contact=false,done=false;
+  if(spec.speed){
+   const previous=projectileX(hit.origin,hit.direction,hit.action,Math.max(0,hit.checked-hit.at-spec.windup));
+   const current=projectileX(hit.origin,hit.direction,hit.action,age-spec.windup);
+   const distance=(q.x-hit.origin)*hit.direction;
+   contact=distance>=-2&&distance<=spec.reach&&q.x>=Math.min(previous,current)-3&&q.x<=Math.max(previous,current)+3;
+   done=contact||Math.abs(current-hit.origin)>spec.reach;
+  }else if(hit.action==='LIGHTNING'){contact=Math.abs(q.x-hit.target)<=6;done=true;}
+  else{contact=(q.x-p.x)*hit.direction>=0&&Math.abs(p.x-q.x)<=spec.reach;done=true;}
+  const dodged=hit.action!=='LIGHTNING'&&(q.jumpUntil>now||q.actions.includes('BEND')&&hit.action!=='KICK');
+  if(contact&&!dodged){const guard=q.shieldUntil>now?.12:q.actions.includes('BLOCK')?.28:1;q.hp=Math.max(0,q.hp-Math.round(spec.damage*guard));q.hitAt=now;}
+  hit.checked=now;
+  if(q.hp<=0){r.status='finished';r.winner=hit.side;return false;}
+  return !done;
+ });
 }
 export function advance(r:Room,now:number){
  if(r.status!=='playing'){r.tick=now;return;}
@@ -42,6 +61,7 @@ export function advance(r:Room,now:number){
   const left=p.actions.includes('MOVE LEFT'),right=p.actions.includes('MOVE RIGHT');
   if(left!==right)p.x=Math.max(8,Math.min(92,p.x+(right?1:-1)*dt*(p.actions.includes('RUN')?25:17)));
  }
+ resolveHits(r,now);if(r.status!=='playing')return;
  if(r.mode==='ai'&&now>=r.cpuAt){
   const cpu=r.fighters[1],human=r.fighters[0],gap=cpu.x-human.x;cpu.lastSeen=now;
   cpu.actions=Math.abs(gap)>17?[gap>0?'MOVE LEFT':'MOVE RIGHT']:Math.random()<.25?['BLOCK']:[];
