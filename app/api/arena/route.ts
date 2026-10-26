@@ -50,8 +50,8 @@ export async function POST(req:Request){
    }
    if(b.op==='input'){
     const r=w.rooms[String(b.roomId)];if(!r)throw Error('Match expired. Start another match.');
-    const actions=Array.isArray(b.actions)?b.actions.filter((a:unknown)=>typeof a==='string').slice(0,14):[];
-    input(r,token,actions,Number.isSafeInteger(b.seq)?b.seq:0,now);return {room:view(r,token,now)};
+    const actions=Array.isArray(b.actions)?b.actions.filter((a:unknown)=>typeof a==='string').slice(0,16):[];
+    input(r,token,actions,Number.isSafeInteger(b.seq)?b.seq:0,now,typeof b.yaw==='number'?b.yaw:undefined);return {room:view(r,token,now)};
    }
    throw Error('Unknown arena request.');
   });

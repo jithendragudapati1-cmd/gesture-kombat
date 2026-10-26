@@ -11,10 +11,11 @@ let library:Promise<void>|undefined;
 function load(){return library??=new Promise<void>((resolve,reject)=>{if(window.Holistic){resolve();return;}const s=document.createElement('script');s.src=CDN+'holistic.js';s.crossOrigin='anonymous';s.onload=()=>resolve();s.onerror=()=>{library=undefined;reject(Error('Could not load tracking. Check your connection and retry.'));};document.head.appendChild(s);});}
 const connections=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
 const handConnections=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
-export default function CameraPanel({host,onActions,onReady}:{host:HTMLElement|null;onActions:(actions:string[],events:string[])=>void;onReady:(ready:boolean)=>void}){
+export default function CameraPanel({host,onActions,onReady,forceOff=false}:{forceOff?:boolean;host:HTMLElement|null;onActions:(actions:string[],events:string[])=>void;onReady:(ready:boolean)=>void}){
  const video=useRef<HTMLVideoElement|null>(null),canvas=useRef<HTMLCanvasElement>(null),recognizer=useRef(new GestureRecognition()),streamRef=useRef<MediaStream|null>(null);
  const callbacks=useRef({onActions,onReady});callbacks.current={onActions,onReady};
  const [enabled,setEnabled]=useState(false),[status,setStatus]=useState('Your movement is the controller'),[error,setError]=useState(''),[busy,setBusy]=useState(false),[active,setActive]=useState<string[]>([]),[metrics,setMetrics]=useState({fps:0,ms:0}),[profile,setProfile]=useState('fast');
+ useEffect(()=>{if(forceOff)setEnabled(false);},[forceOff]);
  useEffect(()=>{if(!enabled){setActive([]);setStatus('Your movement is the controller');setMetrics({fps:0,ms:0});callbacks.current.onReady(false);callbacks.current.onActions([],[]);return;}
   let alive=true,model:HolisticInstance|undefined,raf=0,vfc=0,scheduledVideo:HTMLVideoElement|null=null,inflight:Promise<void>|undefined,ready=false,lastVideo=-1,count=0,started=performance.now(),totalMs=0;
   const abort=new AbortController();

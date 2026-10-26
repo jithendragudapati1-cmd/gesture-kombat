@@ -20,7 +20,7 @@ export function animationFor(p:Fighter,now:number,winner=false):Animation{
  else if(p.shieldUntil>now){name='ice';cell=9;}
  else if(p.actions.includes('BLOCK')){name='block';cell=9;}
  else if(p.actions.includes('BEND')){name='duck';cell=10;}
- else if(p.actions.some(a=>['WALK','RUN','MOVE LEFT','MOVE RIGHT'].includes(a))){name=p.actions.includes('RUN')?'run':'walk';cell=2+Math.floor(now/(name==='run'?100:160))%2;lift=Math.sin(now/(name==='run'?53:80))*2;}
+ else if(p.actions.some(a=>['WALK','RUN','MOVE LEFT','MOVE RIGHT','MOVE FORWARD','MOVE BACKWARD'].includes(a))){name=p.actions.includes('RUN')?'run':'walk';cell=2+Math.floor(now/(name==='run'?100:160))%2;lift=Math.sin(now/(name==='run'?53:80))*2;}
  else lift=Math.sin(now/410)*1.8;
  if(p.jumpUntil>now&&name!=='jump')lift+=Math.sin(Math.max(0,Math.min(1,1-(p.jumpUntil-now)/650))*Math.PI)*92;
  return {name,cell,phase,shift,lift,stretch};

@@ -13,8 +13,8 @@ export function createRig(character:'raven'|'vortex'|'human'):ModelRig{
   effects.update(action,phase,time,dt,livePose,actions,demonstrate);if(!model)return;
   if(action==='rest'){for(const bone of bones.values()){bone.quaternion.copy(rest.get(bone)!);bone.position.copy(positions.get(bone)!);}model.position.y=0;model.rotation.x=0;return;}
   const pose=livePose??bodyPose(action,phase,time,demonstrate);
-  if(!livePose&&actions.some(a=>['WALK','RUN','MOVE LEFT','MOVE RIGHT'].includes(a))&&!['kick','defeat','jump'].includes(action)){
-   const gait=bodyPose(actions.includes('RUN')?'run':'walk',phase,time);for(const key of ['hipL','hipR','kneeL','kneeR','ankleL','ankleR'] as Joint[])pose.joints[key]=gait.joints[key];
+  if(!livePose&&actions.some(a=>['WALK','RUN','MOVE LEFT','MOVE RIGHT','MOVE FORWARD','MOVE BACKWARD'].includes(a))&&!['kick','defeat','jump'].includes(action)){
+   const gait=bodyPose(actions.includes('MOVE BACKWARD')?'MOVE BACKWARD':actions.includes('RUN')?'run':'walk',phase,time);for(const key of ['hipL','hipR','kneeL','kneeR','ankleL','ankleR'] as Joint[])pose.joints[key]=gait.joints[key];
   }
   const alpha=1-Math.exp(-Math.min(dt,.06)*(livePose?42:25));
   const aim=(name:string,a:Joint,b:Joint)=>{
@@ -35,6 +35,7 @@ export function createRig(character:'raven'|'vortex'|'human'):ModelRig{
    const open=suffix==='L'?pose.openL:pose.openR;
    for(const finger of ['Index','Middle','Ring','Pinky'])for(let n=1;n<=3;n++){const bone=bones.get(side+'Hand'+finger+n);if(bone)bone.quaternion.slerp(rest.get(bone)!.clone().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,side==='Left'?1:-1),open?0:1.05)),alpha);}
   }
+  model.updateWorldMatrix(true,true);for(let i=0;i<2;i++){const bone=bones.get(i?'RightHand':'LeftHand');if(bone)effects.hands[i].position.copy(effects.hands[i].parent!.worldToLocal(bone.getWorldPosition(new T.Vector3())));}
  }};
  new GLTFLoader().load('/models/'+(character==='vortex'?'vortex':'raven')+'.glb',gltf=>{
   if(cancelled){disposeModel(gltf.scene);return;}

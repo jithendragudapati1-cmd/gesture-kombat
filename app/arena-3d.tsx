@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState,type RefObject} from 'react';
-import {readLivePose,readLiveTranslation} from '../lib/live-pose';
+import {readLivePose,readLiveTranslation,readLiveHeading} from '../lib/live-pose';
 import {fighter,type Fighter} from '../lib/combat';
 import {previewFighters,type LocalControl} from '../lib/local-preview';
 import {ARENAS,type ArenaId} from '../lib/arenas';
@@ -13,7 +13,7 @@ export default function Arena3D({room,hero=false,controls,instructorAction,chara
  const solo=live||instructorAction!==undefined,location=ARENAS[room?.arena??arena];
  useEffect(()=>{let alive=true,dispose:(()=>void)|undefined;const started=Date.now();setLoaded(false);setError('');
   import('../lib/scene3d').then(({mountScene})=>{if(!alive||!canvas.current)return;try{
-   dispose=mountScene(canvas.current,solo,()=>{const d=data.current,r=d.room,now=Date.now();const demo=solo?[fighter(CHARACTERS[d.character].name,50,now,d.character)]:[fighter('Raven',29,started,'raven'),fighter('Vortex',71,started,'vortex')];return {inspect:d.inspect,liveTranslation:d.live?readLiveTranslation():undefined,soloActions:d.actions,soloMode:d.live?'live':'training',selectedCharacter:d.character,localPose:d.live||r?.status==='playing'&&r.serverTime>=r.start?readLivePose():undefined,localSide:d.live?0:r?.side,fighters:r?.fighters.length===2?r.status==='playing'&&r.serverTime>=r.start&&controls?previewFighters(r.fighters,r.side,controls.current(),r.serverTime,d.at,now):r.fighters:demo,now:r?r.serverTime+now-d.at:now,outcome:r?.status==='finished'?r.winner:undefined,instructorAction:d.instructorAction,instructorPhase:((now-started)%2800)/2800};},location.id);
+   dispose=mountScene(canvas.current,solo,()=>{const d=data.current,r=d.room,now=Date.now();const demo=solo?[fighter(CHARACTERS[d.character].name,50,now,d.character)]:[fighter('Raven',29,started,'raven'),fighter('Vortex',71,started,'vortex')];return {localYaw:d.live||r?.status==='playing'?readLiveHeading():0,inspect:d.inspect,liveTranslation:d.live?readLiveTranslation():undefined,soloActions:d.actions,soloMode:d.live?'live':'training',selectedCharacter:d.character,localPose:d.live||r?.status==='playing'&&r.serverTime>=r.start?readLivePose():undefined,localSide:d.live?0:r?.side,fighters:r?.fighters.length===2?r.status==='playing'&&r.serverTime>=r.start&&controls?previewFighters(r.fighters,r.side,controls.current(),r.serverTime,d.at,now):r.fighters:demo,now:r?r.serverTime+now-d.at:now,outcome:r?.status==='finished'?r.winner:undefined,instructorAction:d.instructorAction,instructorPhase:((now-started)%2800)/2800};},location.id);
   }catch(e){setError(e instanceof Error?e.message:'3D rendering is unavailable. Enable browser hardware acceleration.');}}).catch(()=>setError('Could not load 3D. Refresh and retry.'));
   const status=setInterval(()=>{const c=canvas.current;if(c?.dataset.modelState==='ready')setLoaded(true);if(c?.dataset.error)setError(c.dataset.error);},150);
   return()=>{alive=false;clearInterval(status);dispose?.();};

@@ -41,11 +41,19 @@ export function bodyPose(action:string,phase:number,time:number,instructor=false
    drive('kneeL',[-.54,.60,.43]);drive('kneeR',[.54,.60,.38]);p.lean=.2;break;
   }
   case 'JUMP':case 'jump':p.rootY+=Math.max(0,Math.sin(phase*Math.PI))*.62;drive('kneeL',[-.3,.92,.25]);drive('kneeR',[.3,.92,.15]);drive('ankleL',[-.35,.32,0]);drive('ankleR',[.35,.32,-.1]);break;
-  case 'MOVE LEFT':case 'MOVE RIGHT':case 'WALK':case 'RUN':case 'walk':case 'run':{
-   const run=action==='RUN'||action==='run',swing=Math.sin(time*(run?15:9)),amp=run?.43:.28;
-   j.ankleL[2]+=swing*amp;j.ankleR[2]-=swing*amp;j.kneeL[2]+=swing*amp*.6;j.kneeR[2]-=swing*amp*.6;
-   j.ankleL[1]+=Math.max(0,swing)*.18;j.ankleR[1]+=Math.max(0,-swing)*.18;
-   drive('wristL',[-.42,1.7,.28-swing*.22]);drive('wristR',[.42,1.7,.28+swing*.22]);p.rootY+=Math.abs(swing)*.035;break;
+  case 'MOVE LEFT':case 'MOVE RIGHT':case 'MOVE FORWARD':case 'MOVE BACKWARD':case 'WALK':case 'RUN':case 'walk':case 'run':{
+   const run=action==='RUN'||action==='run',cycle=time*(run?10.8:6.2),stride=run?.56:.34,direction=action==='MOVE BACKWARD'?-1:1;
+   for(const [side,offset] of [['L',0],['R',Math.PI]] as const){
+    const t=cycle+offset,swing=Math.sin(t),lift=Math.max(0,Math.cos(t));
+    const x=side==='L'?-.23:.23;
+    j[('hip'+side) as Joint]=[x,1.37+(run?-.07:0),0];
+    j[('knee'+side) as Joint]=[x,run?.78:.73,swing*stride*.5*direction+lift*(run?.3:.12)];
+    j[('ankle'+side) as Joint]=[x,.12+lift*(run?.4:.17),swing*stride*direction];
+    const arm=-swing*(run?.48:.25)*direction;
+    j[('elbow'+side) as Joint]=[x*(run?2:2.15),1.8+(run?.2:0),arm*.5+.05];
+    j[('wrist'+side) as Joint]=[x*1.75,run?2.18:1.55,arm+.1];
+   }
+   p.rootY+=(run?.07:.025)*Math.abs(Math.sin(cycle));p.lean=run?.14:.035;break;
   }
   case 'hit':p.lean=-.25*Math.sin(phase*Math.PI);drive('wristR',[.62,1.8,.3]);break;
   case 'victory':drive('wristR',[.49,3.05,.1]);drive('elbowR',[.57,2.65,.1]);break;

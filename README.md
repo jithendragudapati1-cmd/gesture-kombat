@@ -1,7 +1,4 @@
-# Gesture Kombat
-
-[Play the live game](https://gesture-kombat-arena-jg.easyalder12.chatgpt.site/)
-
+# Gesture Kombat — web arena
 
 A playable browser companion to the existing Python Gesture Kombat detector.
 The Python 3.12 / MediaPipe 0.10.21 environment is unchanged. This web app ports
@@ -11,7 +8,7 @@ stay on the device; only action names are transmitted to the match server.
 
 ## Modes
 
-- **Tutorials:** 14 guided, camera-verified lessons; progress saved on this device.
+- **Tutorials:** 11 guided, camera-verified lessons; progress saved on this device.
 - **Human vs AI:** easy, normal, hard; server-controlled sparring opponent.
 - **Multiplayer:** shared random matchmaking; requires two actual queued players.
 - **1v1 with Friends:** create a six-character room or join via code/invite link.
@@ -58,7 +55,7 @@ from active play afterward.
 
 ## Demo scope
 
-This is a hackathon game, with imported textured 3D fighters and server polling every
+This is a hackathon game, with procedural 2D fighters and server polling every
 160ms rather than a high-frequency fighting-game netcode stack. A shared D1
 record uses optimistic concurrency to keep the small demo lobby and rooms
 consistent across visitors. The design is intended for a small live demo;
@@ -238,3 +235,12 @@ Training and Live Tracking support drag-to-orbit, scroll-to-zoom, Reset view, an
 New matches start at 250 HP. Attacks queue a wind-up before contact is checked; melee must connect within a short directional hit volume, fire/combo projectiles sweep a traveling path, and lightning marks a target position before striking. Moving out of the path, crouching, jumping, and shielding can avoid or mitigate damage. Hit volumes are a gameplay approximation, not per-triangle mesh collision. Server results remain authoritative. Existing matches retain their original max HP.
 
 Animated orange fireballs, purple combo energy, particles, impact rings, lightning telegraphs/bolts and ice shields now work in tutorials, Live Tracking and matches. Power HUD includes fire/ice/lightning/combo emoji. Opening uses a short skippable neon transition with reduced-motion support.
+
+
+### Motion and arena update
+
+Three quiet real 3D arenas (Cloud Pavilion, Pearl Dojo and Silver Orbit) keep the supplied fighters in focus. Classic Play supports keyboard and mouse with the webcam off. Walking/running use opposing limb motion; webcam input estimates facing and depth from visible body landmarks. Punch effects use fist streaks, larger lightning includes branching bolts, and fire launches from the hands. The opening uses a floating skeleton and scan transition.
+
+These GLBs contain no animation clips: animation is procedural skeletal posing and webcam landmark retargeting. A single webcam cannot reliably reproduce hidden limbs during a full turn, and tracking is not zero latency. Only game actions and facing angles are transmitted; camera images and body landmarks stay on the device.
+
+Validation: 55 automated tests, type checking, production build and multiplayer API checks.

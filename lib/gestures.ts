@@ -11,7 +11,7 @@ export function handShape(h?:Point[]){
  const palm=Math.max(length(h[0],h[9]),.001);
  const ext=[[5,6,8],[9,10,12],[13,14,16],[17,18,20]].filter(([a,b,c])=>joint(h[a],h[b],h[c])>148&&length(h[c],h[0])>length(h[b],h[0])*1.08).length;
  const avg=(ids:number[])=>({x:ids.reduce((s,i)=>s+h[i].x,0)/ids.length,y:ids.reduce((s,i)=>s+h[i].y,0)/ids.length,z:ids.reduce((s,i)=>s+h[i].z,0)/ids.length});
- return {open:ext>=3,fist:ext<=1,up:[8,12,16,20].filter((t,i)=>h[t].y<h[[5,9,13,17][i]].y-.20*palm).length>=3,forward:dist(h[5],h[17])/palm>.32,wrist:h[0],center:avg([0,5,9,13,17]),tips:avg([8,12,16,20])};
+ return {open:ext>=3,fist:ext===0,up:[8,12,16,20].filter((t,i)=>h[t].y<h[[5,9,13,17][i]].y-.20*palm).length>=3,forward:dist(h[5],h[17])/palm>.32,wrist:h[0],center:avg([0,5,9,13,17]),tips:avg([8,12,16,20])};
 }
 export class GestureRecognition{
  history:{t:number;p:Point[];s:number;hip:Point;shoulder:Point}[]=[];
@@ -55,10 +55,21 @@ export class GestureRecognition{
  const fists:number[]=[];
  for(const [idx,w,sh,e] of [[0,15,11,13],[1,16,12,14]]){
   if(!h[idx]?.fist||!visible(w,sh,e))continue;
-  if(refs.some(o=>{if((o.p[w].visibility??0)<.4)return false;const depth=((o.p[w].z-o.p[sh].z)-(p[w].z-p[sh].z))/s;const ext=(dist(p[w],p[sh])-dist(o.p[w],o.p[sh]))/s;return(depth>.19||ext>.19)&&(angle(p[sh],p[e],p[w])>118||depth>.23);})) {fists.push(idx);this.punchAt[idx]=now;}
+  if(prayer||shield||c.has('BLOCK'))continue;
+  const baseline=refs.find(o=>now-o.t>=70&&now-o.t<=220);
+  if(baseline){
+   const old=baseline.p,depth=((old[w].z-old[sh].z)-(p[w].z-p[sh].z))/s;
+   const extension=(dist(p[w],p[sh])-dist(old[w],old[sh]))/s;
+   const elbow=angle(p[sh],p[e],p[w]),previousElbow=angle(old[sh],old[e],old[w]);
+   const chestHeight=Math.abs(p[w].y-(shoulder.y+.28*s))<.7*s;
+   const forward=depth>.28&&depth/Math.max(.07,(now-baseline.t)/1000)>1.65;
+   const sidePunch=extension>.32&&elbow>150&&elbow-previousElbow>18&&Math.abs(p[w].y-old[w].y)<.4*s;
+   if(chestHeight&&(forward||sidePunch)){fists.push(idx);this.punchAt[idx]=now;}
+  }
  }
  if(fists.length){const paired=this.punchAt.every((t,i)=>now-t<140&&h[i]?.fist);add(paired?'DOUBLE PUNCH':'PUNCH');}
  if(torso)for(const o of refs){
+  const scaleChange=Math.log(s/o.s);if(Math.abs(scaleChange)>.075&&Math.abs(hip.x-o.hip.x)<.14*s)add(scaleChange>0?'MOVE FORWARD':'MOVE BACKWARD',65);
   const dx=(hip.x-o.hip.x)/s,sdx=(shoulder.x-o.shoulder.x)/s;
   // Video is mirrored; a raw x decrease is movement to screen right.
   if(dx*sdx>0&&Math.abs(dx-sdx)<.16&&Math.abs((dx+sdx)/2)>.065)add(dx<0?'MOVE RIGHT':'MOVE LEFT');
@@ -82,6 +93,7 @@ export class GestureRecognition{
    }
   }
  }
+ if(c.has('BEND')){c.delete('MOVE FORWARD');c.delete('MOVE BACKWARD');}
  if(c.has('JUMP')){c.delete('KICK');c.delete('BEND');c.delete('WALK');c.delete('RUN');}
  if(c.has('DOUBLE PUNCH')){c.delete('PUNCH');delete this.holds.PUNCH;}
  if(c.has('RUN')){c.delete('WALK');delete this.holds.WALK;}
@@ -91,6 +103,7 @@ export class GestureRecognition{
  for(const [a,dwell] of c){this.since[a]??=now;if(now-this.since[a]<dwell)continue;this.holds[a]=now+150;
   if(!this.latched.has(a)&&now>(this.cool[a]??0)){events.push(a);this.latched.add(a);this.cool[a]=now+(['FIRE BLAST','LIGHTNING','COMBO ENERGY'].includes(a)?1100:500);}
  }
+ if(c.has('MOVE FORWARD'))delete this.holds['MOVE BACKWARD'];if(c.has('MOVE BACKWARD'))delete this.holds['MOVE FORWARD'];
  if(c.has('MOVE LEFT'))delete this.holds['MOVE RIGHT'];if(c.has('MOVE RIGHT'))delete this.holds['MOVE LEFT'];
  for(const a of Object.keys(this.holds))if(this.holds[a]<now||a==='FIRE BLAST'&&!prayer||a==='ICE SHIELD'&&!shield)delete this.holds[a];
  return {actions:Object.keys(this.holds),events,status:prayer?'Prayer detected — hold':shield?'Raised palms detected':torso?'Tracking body + hands':'Upper body tracked — step back for legs'};
