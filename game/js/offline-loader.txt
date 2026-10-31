@@ -1,0 +1,32 @@
+(function () {
+  'use strict';
+  function J(id) { var e = document.getElementById(id); return e ? JSON.parse(e.textContent) : null; }
+  var S = window.__GK_SRC || J('gk-src'), A = window.__GK_ASSETS || J('gk-assets');
+  window.__GK_OFFLINE = true; window.__GK_ASSETS = A;
+  function b64bytes(b64) { var bin = atob(b64), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  // Serve embedded files to fetch() so no web server is needed.
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (u, o) {
+    var k = String(u && u.url || u).replace(/^\.\//, '');
+    if (Object.prototype.hasOwnProperty.call(A, k)) {
+      var v = A[k];
+      if (/\.bin$/.test(k)) return Promise.resolve(new Response(b64bytes(v), { headers: { 'content-type': 'application/octet-stream' } }));
+      if (/^data:/.test(v)) return realFetch(v, o);
+      return Promise.resolve(new Response(v, { headers: { 'content-type': /\.json$/.test(k) ? 'application/json' : 'text/plain' } }));
+    }
+    return realFetch(u, o);
+  };
+  // Link the ES modules through blob: URLs in dependency order.
+  var re = /(from\s*|import\s*\(\s*)(['"])\.\/([\w-]+\.js)\2/g;
+  var deps = {}, urls = {}, done = {}, order = [];
+  Object.keys(S).forEach(function (n) { deps[n] = []; S[n].replace(re, function (_, a, q, d) { if (S[d] && deps[n].indexOf(d) < 0) deps[n].push(d); return _; }); });
+  function visit(n, stack) { if (done[n]) return; if (stack[n]) return; stack[n] = 1; deps[n].forEach(function (d) { visit(d, stack); }); done[n] = 1; order.push(n); }
+  Object.keys(S).forEach(function (n) { visit(n, {}); });
+  order.forEach(function (n) {
+    var code = S[n].replace(re, function (m, a, q, d) { return urls[d] ? a + q + urls[d] + q : m; });
+    urls[n] = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+  });
+  import(urls['main.js']).catch(function (e) {
+    document.body.insertAdjacentHTML('beforeend', '<p style="position:fixed;inset:auto 0 0;padding:16px;background:#300;color:#fff;font:16px sans-serif;z-index:999">Gesture Kombat could not start in this browser (' + e.message + '). Please open this file in Google Chrome or Microsoft Edge.</p>');
+  });
+})();
