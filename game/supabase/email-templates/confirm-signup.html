@@ -1,0 +1,16 @@
+<!-- Supabase → Authentication → Emails → "Confirm signup". Subject: Welcome to Gesture Kombat, {{ .Data.username }} -->
+<div style="background:#070302;padding:32px 12px;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" width="100%" style="max-width:520px;margin:0 auto;background:#120806;border:1px solid #7a3a24;border-top:3px solid #ff5a2a">
+    <tr><td style="padding:32px 32px 8px;text-align:center">
+      <div style="font:italic 900 40px/0.9 Impact,'Arial Narrow',sans-serif;color:#eef1f4;letter-spacing:1px">GESTURE</div>
+      <div style="font:italic 900 40px/0.9 Impact,'Arial Narrow',sans-serif;color:#ff5426;letter-spacing:1px">KOMBAT</div>
+      <div style="margin-top:10px;font-size:11px;letter-spacing:4px;color:#b9a49a">YOUR BODY. YOUR POWER.</div>
+    </td></tr>
+    <tr><td style="padding:20px 32px;color:#e8dcd6;font-size:16px;line-height:1.6">
+      <p style="margin:0 0 12px;font-size:20px;color:#fff"><b>Welcome to the arena, {{ .Data.username }}!</b></p>
+      <p style="margin:0 0 20px">Your Gesture Kombat account has been created. Confirm your email to finish setting it up and start saving your wins.</p>
+      <p style="text-align:center;margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#c72e0f;border:1px solid #ff5d2d;color:#fff;text-decoration:none;font-weight:bold;letter-spacing:2px;padding:14px 28px">CONFIRM MY EMAIL</a></p>
+      <p style="margin:0;font-size:13px;color:#9a8a83">If you didn't create this account, you can ignore this email.</p>
+    </td></tr>
+  </table>
+</div>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Gesture Kombat</title>
+  <meta name="description" content="Elemental fighting game you play with your body. Your body. Your power.">
+  <meta name="theme-color" content="#05080c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23ff421e'/%3E%3Cpath d='M20 44 32 14l12 30-12-8z' fill='%23fff3e0'/%3E%3C/svg%3E">
+<style id="gk-crit">html,body{margin:0;height:100%;background:#070302;color-scheme:dark}
+#splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse 70% 45% at 50% 52%,#5a1606 0%,#2a0904 35%,#0b0403 70%,#050202 100%);transition:opacity .35s}
+#splash::before{content:'';position:absolute;inset:-20%;background:radial-gradient(circle at 30% 70%,#ff4a1a33,transparent 30%),radial-gradient(circle at 72% 30%,#3aa0ff26,transparent 28%);animation:gks 3s ease-in-out infinite alternate}
+#splash b{position:relative;font:italic 900 clamp(48px,11vw,140px)/.9 'Barlow Condensed',Impact,'Arial Narrow',sans-serif;text-align:center;letter-spacing:.02em;color:#1a0b08;-webkit-text-stroke:2px #ff784a88;transform:skewX(-10deg)}
+#splash b::after{content:'GESTURE\AKOMBAT';white-space:pre;position:absolute;inset:0;color:transparent;-webkit-text-stroke:0;background:linear-gradient(90deg,#6a0c03,#ff3a10 50%,#ffd36b 70%,transparent 72%) 0 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:gkf 2.4s linear infinite}
+#splash.off{opacity:0;pointer-events:none}
+@keyframes gks{to{transform:scale(1.15) rotate(3deg)}}@keyframes gkf{from{background-position:100% 0}to{background-position:0 0}}</style>
+  <link rel="preload" as="image" href="assets/arena.webp">
+  <link rel="preload" as="image" href="assets/menu.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800;1,900&family=Rajdhani:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body data-screen="loading">
+  <div id="splash" aria-hidden="true"><b>GESTURE<br>KOMBAT</b></div>
+  <div id="world" aria-hidden="true"></div>
+  <main id="app"></main>
+  <dialog id="modal"><button type="button" class="close" aria-label="Close dialog">×</button><div id="modalBody"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:2rem">Gesture Kombat needs JavaScript enabled.</p></noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
