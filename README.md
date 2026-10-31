@@ -15,6 +15,12 @@ Punch, kick, block and unleash elemental specials in front of your webcam, and a
 
 ---
 
+## 🎬 Trailer
+
+[![Watch the Gesture Kombat trailer](docs/video/trailer-poster.jpg)](docs/video/gesture-kombat-trailer.mp4)
+
+**[▶ Watch the trailer (1:44)](docs/video/gesture-kombat-trailer.mp4)**: how the body tracking works, the fighters, the Move Academy, battles, online versus and accounts.
+
 ## ✨ Features
 
 - **Full-body control.** On-device pose tracking (MediaPipe) turns your movements into moves: punch, double punch, kick, block, jump, crouch, walk, run and elemental specials.
